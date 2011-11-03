@@ -9,7 +9,7 @@ from pygame.locals import *
 ##
 DEBUG		= 1
 DEBUG		= 1
-VERSION		= "$Id: pyfrog.py,v 1.2 2011-06-16 23:29:25 nick Exp $"
+VERSION		= "$Id: pyfrog.py,v 1.3 2011-11-03 22:13:19 nick Exp $"
 TITLE 		= "PyFrog"
 SCREEN_WIDTH 	= 640
 SCREEN_HEIGHT 	= 480
@@ -39,6 +39,14 @@ LONG_LOG	= 9
 MAX_WOOD	= 7
 
 ##
+## Input
+##
+UP		= 273
+DOWN		= 274
+RIGHT		= 275
+LEFT		= 276
+
+##
 ## Turtles
 ##
 DIVE_START_TIME	= 50
@@ -62,22 +70,16 @@ SCORE_PINK	= 200
 SCORE_SECONDS	= 10
 HIGH_SCORE	= 4630
 SCORE_FREE_FROG	= 2000
+LIVES		= 3
+
+global screen
 
 ##
 ## Some general game state stats
 ##
-level		= 0
-playing		= 0
-goDelay		= 0
-score		= 0
-lives		= 0
-freefrog	= 0
-drawBG		= 1
-global screen
-
-class gameStats( ):
+class mainGame( ):
 	def __init__( self ):
-		self.level = 0
+		self.level 	= 0
 		self.playing 	= 0
 		self.goDelay	= 0
 		self.score	= 0
@@ -160,27 +162,37 @@ def beginGame( ):
 def keyEvents( event ):
 	if event.type == QUIT: return 1
 	elif event.type == KEYDOWN:
+		print "Key Event Type: ", event.key
+
 		if event.key == K_ESCAPE: return 1
-		elif event.key == K_P: 
-			if level:
+		elif event.key == K_p: 
+			if game.level:
+				if game.playing:
+					game.playing = 0
+				else:
+					game.playing = 1
 				print "D: Pausing Game"
+				
 		elif event.key == K_1:
-			if not level:
+			if not game.level:
+				game.level = 1
+				game.playing = 1
+				game.lives = LIVES
 				print "D: Starting Game"
 
 	return 0
 
 def updateGameState( ):
-	if lives <= 0:
-		goDelay += 1
+	if game.lives <= 0:
+		game.goDelay += 1
 		drawGameOver( )
 		if goDelay > 7:
-			playing		= 0
-			lives		= 0
-			level		= 0
-			score		= 0
-			freefrog	= 0
-			drawBG		= 0
+			game.playing	= 0
+			game.lives	= 0
+			game.level	= 0
+			game.score	= 0
+			game.freefrog	= 0
+			game.drawBG	= 0
 #			for i = 0; i < MAX_GOALS; i++:
 #				goals[i].occupied = 0
 		return 500
@@ -194,8 +206,8 @@ def drawGameScreen( ):
 
 def heartbeat( ):
 	ticks = 0;
-	if level:
-		if playing:
+	if game.level:
+		if game.playing:
 			ticks = updateGameState( )
 			if ticks <= 0: ticks = 30
 			return ticks
@@ -216,7 +228,7 @@ def drawTitleScreen( ):
 	drawBackground( )
 
 def drawBackground( ):
-	background_image, background_rect = loadImage( 'gameboard.png' )
+	background_image, background_rect = loadImage( 'tempgameboard.png' )
 	screen.blit( background_image, ( 0, 0 ) )
 	pygame.display.flip( )
 
@@ -253,8 +265,5 @@ def loadSound( name ):
 		return noSound
 
 	return sound
-
+game = mainGame( )
 if __name__ == '__main__': main()
-#init( )
-#beginGame( )
-#sys.quit( )
