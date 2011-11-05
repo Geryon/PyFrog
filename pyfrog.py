@@ -9,11 +9,13 @@ from pygame.locals import *
 ##
 DEBUG		= 1
 DEBUG		= 1
-VERSION		= "$Id: pyfrog.py,v 1.4 2011-11-05 02:38:17 nick Exp $"
+VERSION		= "$Id: pyfrog.py,v 1.5 2011-11-05 04:07:53 nick Exp $"
 TITLE 		= "PyFrog"
 SCREEN_WIDTH 	= 640
 SCREEN_HEIGHT 	= 480
 COLORKEY	= ( 255, 0, 255 )
+TRUE		= 1
+FALSE		= 0
 
 ##
 ## Baddies
@@ -80,20 +82,32 @@ global screen
 class mainGame( ):
 	def __init__( self ):
 		self.level 	= 0
-		self.playing 	= 0
+		self.playing 	= FALSE
 		self.goDelay	= 0
 		self.score	= 0
 		self.lives	= 0
 		self.freefrog	= 0
-		self.drawBG 	= 0
+		self.drawBG 	= FALSE
 		
+class images( ):
+	def __init__( self ):
+		self.title_image	= 0
+		self.title_rect		= 0
+		self.frogger_image	= 0
+		self.frogger_rect	= 0
+		self.background_image	= 0
+		self.background_rect	= 0
+
+class sounds( ):
+	def __init__( self ):
+		self.hop	= 0
 
 class Log( pygame.sprite.Sprite ):
 	def __init__( self ):
 		pygame.sprite.Sprite.__init__( self )
 		self.size 	= 0
-		self.placement 	= ( 0, 0 )
-		self.oPlacement = ( 0, 0 )
+		self.placement 	= [ 0, 0 ]
+		self.oPlacement = [ 0, 0 ]
 		self.row	= 0
 		self.speed	= 0
 		self.pink	= 0
@@ -104,8 +118,8 @@ class Log( pygame.sprite.Sprite ):
 
 class Vehicles( pygame.sprite.Sprite):
 	def __init__( self ): 
-		self.placement 	= ( 0, 0 )
-		self.oPlacement = ( 0, 0 )
+		self.placement 	= [ 0, 0 ]
+		self.oPlacement = [ 0, 0 ]
 		self.direction	= 0
 		self.row	= 0
 		self.speed	= 0
@@ -126,20 +140,20 @@ class Goals( pygame.sprite.Sprite ):
 		self.fly	= 0
 		self.gator	= 0
 
-class frog( pygame.sprite.Sprite):
+class pyFrog( ):
 	def __init__( self ):
-		pygame.sprite.Sprite.__init( self )
-		pos		= [0, 0]
-		oldPos		= [0, 0]	
-		direction	= 0
-		location	= 0
-		hopCount	= 0
-		currentRow	= 0
-		alive		= 1
-		riding		= 0
-		ridingType	= 0
-		deathType	= 0
-		deathCount	= 0
+	#	pygame.sprite.Sprite.__init( self )
+		self.pos	= [0, 0]
+		self.oldPos	= [0, 0]	
+		self.direction	= 0
+		self.location	= 0
+		self.hopCount	= 0
+		self.currentRow	= 0
+		self.alive	= 1
+		self.riding	= 0
+		self.ridingType	= 0
+		self.deathType	= 0
+		self.deathCount	= 0
 
 def main( ):
 	pygame.mixer.init( )
@@ -147,8 +161,17 @@ def main( ):
 
 	pygame.init( )
 
+	global game
 	global screen
+	global frog
+	global gfx
+	global snd
 	screen = pygame.display.set_mode( ( SCREEN_WIDTH, SCREEN_HEIGHT ) )
+	game   = mainGame( )
+	frog   = pyFrog( )
+	gfx    = images( )
+	snd    = sounds( )
+
 	pygame.display.set_caption( TITLE )
 	pygame.mouse.set_visible( 0 )
 	
@@ -157,13 +180,11 @@ def main( ):
 
 def beginGame( ):
 	next_heartbeat = 0
-	done = 0
+	done = FALSE
 
 	if loadMedia( ) <= 0:
 		print "Error: Failed to load graphics and audio!\n" 
 		return
-
-	drawBackground( )
 
 	if DEBUG: print "D: Starting main game loop"
 
@@ -187,18 +208,46 @@ def keyEvents( event ):
 		elif event.key == K_p: 
 			if game.level:
 				if game.playing:
-					game.playing = 0
+					game.playing = FALSE
 				else:
-					game.playing = 1
+					game.playing = TRUE
 				print "D: Pausing Game"
 				
 		elif event.key == K_1:
-			if not game.level:
+			if not game.level and not game.playing:
 				game.level = 1
-				game.playing = 1
+				game.playing = TRUE
 				game.lives = LIVES
 				print "D: Starting Game"
 
+		if game.level and game.playing and frog.alive:
+			if event.key == K_LEFT:
+				if not frog.direction:
+					print "D: Frogger going left"
+					frog.hopCount = 0
+					frog.direction = LEFT
+					#snd.hop.play()
+			if event.key == K_RIGHT:
+				if not frog.direction:
+					print "D: Frogger going right"
+					frog.hopCount = 0
+					frog.direction = RIGHT
+					#snd.hop.play()
+					#playSound( frogger.s_hop )
+			if event.key == K_UP:
+				if not frog.direction:
+					print "D: Frogger going up"
+					frog.hopCount = 0
+					frog.direction = UP
+					frog.currentRow += 1
+					#playSound( frogger.s_hop )
+			if event.key == K_DOWN:
+				if not frog.direction:
+					print "D: Frogger going down"
+					frog.hopCount = 0
+					frog.direction = DOWN
+					frog.direction -= 1
+					#playSound( frogger.s_hop )
 	return 0
 
 def updateGameState( ):
@@ -206,29 +255,39 @@ def updateGameState( ):
 		game.goDelay += 1
 		drawGameOver( )
 		if goDelay > 7:
-			game.playing	= 0
+			game.playing	= FALSE
 			game.lives	= 0
 			game.level	= 0
 			game.score	= 0
 			game.freefrog	= 0
-			game.drawBG	= 0
+			game.drawBG	= FALSE
 #			for i = 0; i < MAX_GOALS; i++:
 #				goals[i].occupied = 0
 		return 500
 	
 	drawGameScreen( )
 
-	return 30
+	return 50
 
 def drawGameScreen( ):
-	print "D: Drawing main game screen"
+	if frog.direction: moveFrog( )
+			
+	screen.blit( gfx.background_image, ( 0, 0 ) )
+
+	pygame.display.flip( )
+
+def moveFrog( ):
+	frog.hopCount += 1
+	if frog.hopCount > 60:
+		print "D: Try Again"
+		frog.direction = FALSE
 
 def heartbeat( ):
 	ticks = 0;
 	if game.level:
 		if game.playing:
 			ticks = updateGameState( )
-			if ticks <= 0: ticks = 30
+			if ticks <= 0: ticks = 50
 			return ticks
 		else:
 			drawPauseScreen( )
@@ -244,15 +303,18 @@ def drawPauseScreen( ):
 	print "D: Game Paused"
 
 def drawTitleScreen( ):
-	drawBackground( )
-
-def drawBackground( ):
-	background_image, background_rect = loadImage( 'tempgameboard.png' )
-	screen.blit( background_image, ( 0, 0 ) )
+	screen.blit( gfx.background_image, ( 0, 0 ) )
+	screen.blit( gfx.title_image, ( 35, 92 ) )
 	pygame.display.flip( )
-
+	
 def loadMedia( ):
 	print "D: Loading media"
+	gfx.background_image, gfx.background_rect = loadImage( 'gameboard.png' )
+	gfx.frogger_image, gfx.frogger_rect = loadImage( 'frogger.png' )
+	gfx.title_image, gfx.title_rect = loadImage( 'pyfrog-title.png', -1 )
+	
+	snd.hop = loadSound( 'dp_frogger_hop.ogg' )
+	
 	return 1
 
 def loadImage( filename, colorKey = None ):
@@ -288,5 +350,9 @@ def loadSound( name ):
 		return noSound
 
 	return sound
-game = mainGame( )
+
+################################################################################
+## Begin Here
+################################################################################
+
 if __name__ == '__main__': main()
