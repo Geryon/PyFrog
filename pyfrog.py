@@ -9,7 +9,7 @@ from pygame.locals import *
 ##
 DEBUG		= 1
 DEBUG		= 1
-VERSION		= "$Id: pyfrog.py,v 1.3 2011-11-03 22:13:19 nick Exp $"
+VERSION		= "$Id: pyfrog.py,v 1.4 2011-11-05 02:38:17 nick Exp $"
 TITLE 		= "PyFrog"
 SCREEN_WIDTH 	= 640
 SCREEN_HEIGHT 	= 480
@@ -126,6 +126,21 @@ class Goals( pygame.sprite.Sprite ):
 		self.fly	= 0
 		self.gator	= 0
 
+class frog( pygame.sprite.Sprite):
+	def __init__( self ):
+		pygame.sprite.Sprite.__init( self )
+		pos		= [0, 0]
+		oldPos		= [0, 0]	
+		direction	= 0
+		location	= 0
+		hopCount	= 0
+		currentRow	= 0
+		alive		= 1
+		riding		= 0
+		ridingType	= 0
+		deathType	= 0
+		deathCount	= 0
+
 def main( ):
 	pygame.mixer.init( )
 	pygame.mixer.pre_init( 44100, -16, 2, 2048 )
@@ -143,6 +158,10 @@ def main( ):
 def beginGame( ):
 	next_heartbeat = 0
 	done = 0
+
+	if loadMedia( ) <= 0:
+		print "Error: Failed to load graphics and audio!\n" 
+		return
 
 	drawBackground( )
 
@@ -231,6 +250,10 @@ def drawBackground( ):
 	background_image, background_rect = loadImage( 'tempgameboard.png' )
 	screen.blit( background_image, ( 0, 0 ) )
 	pygame.display.flip( )
+
+def loadMedia( ):
+	print "D: Loading media"
+	return 1
 
 def loadImage( filename, colorKey = None ):
 	fullname = os.path.join( 'images', filename )
