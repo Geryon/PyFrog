@@ -16,6 +16,17 @@ SCREEN_HEIGHT 	= 480
 COLORKEY	= ( 255, 0, 255 )
 TRUE		= 1
 FALSE		= 0
+FROG_START_X	= 306
+FROG_START_Y	= 425
+FRAME		= 24
+HFRAME		= FRAME / 2
+HOP_DISTANCE	= 30
+HOP_SPEED	= 3
+ROW_BASE	= 425
+LEFT_SIDE	= 115
+RIGHT_SIDE	= 525
+SPLASH		= 1
+SPLAT		= 2
 
 ##
 ## Baddies
@@ -74,6 +85,11 @@ HIGH_SCORE	= 4630
 SCORE_FREE_FROG	= 2000
 LIVES		= 3
 
+##
+## The green game timer
+##
+MAX_TIMER	= 350
+
 global screen
 
 ##
@@ -88,6 +104,7 @@ class mainGame( ):
 		self.lives	= 0
 		self.freefrog	= 0
 		self.drawBG 	= FALSE
+		self.timeLeft   = MAX_TIMER
 		
 class images( ):
 	def __init__( self ):
@@ -116,7 +133,7 @@ class Log( pygame.sprite.Sprite ):
 	def update( self ):
 		self.placement += self.speed
 
-class Vehicles( pygame.sprite.Sprite):
+class Vehicles( pygame.sprite.Sprite ):
 	def __init__( self ): 
 		self.placement 	= [ 0, 0 ]
 		self.oPlacement = [ 0, 0 ]
@@ -143,8 +160,8 @@ class Goals( pygame.sprite.Sprite ):
 class pyFrog( ):
 	def __init__( self ):
 	#	pygame.sprite.Sprite.__init( self )
-		self.pos	= [0, 0]
-		self.oldPos	= [0, 0]	
+		self.pos	= [ 0, 0 ]
+		self.oldPos	= [ 0, 0 ]	
 		self.direction	= 0
 		self.location	= 0
 		self.hopCount	= 0
@@ -154,6 +171,9 @@ class pyFrog( ):
 		self.ridingType	= 0
 		self.deathType	= 0
 		self.deathCount	= 0
+	
+		self.src	= [ 0, 0, FRAME, FRAME ]
+		self.dst	= [ 0, 0 ]
 
 def main( ):
 	pygame.mixer.init( )
@@ -202,9 +222,15 @@ def beginGame( ):
 def keyEvents( event ):
 	if event.type == QUIT: return 1
 	elif event.type == KEYDOWN:
-		print "Key Event Type: ", event.key
+		print "D: Key Event Type: ", event.key
 
-		if event.key == K_ESCAPE: return 1
+		if event.key == K_ESCAPE or event.key == K_q: 
+			print "D: Exiting game"
+			return 1
+
+		##
+		## Key actions if paused
+		##
 		elif event.key == K_p: 
 			if game.level:
 				if game.playing:
@@ -213,13 +239,20 @@ def keyEvents( event ):
 					game.playing = TRUE
 				print "D: Pausing Game"
 				
+		##
+		## Key actions at the main menu
+		##
 		elif event.key == K_1:
 			if not game.level and not game.playing:
-				game.level = 1
+				game.level   = 1
 				game.playing = TRUE
-				game.lives = LIVES
+				game.lives   = LIVES
+				game.drawBG  = TRUE
 				print "D: Starting Game"
 
+		##
+		## Key actions while playing a game
+		##
 		if game.level and game.playing and frog.alive:
 			if event.key == K_LEFT:
 				if not frog.direction:
@@ -236,22 +269,26 @@ def keyEvents( event ):
 					#playSound( frogger.s_hop )
 			if event.key == K_UP:
 				if not frog.direction:
-					print "D: Frogger going up"
 					frog.hopCount = 0
 					frog.direction = UP
 					frog.currentRow += 1
+					print "D: Frogger going up"
 					#playSound( frogger.s_hop )
 			if event.key == K_DOWN:
 				if not frog.direction:
-					print "D: Frogger going down"
 					frog.hopCount = 0
 					frog.direction = DOWN
-					frog.direction -= 1
+					frog.currentRow -= 1
+					print "D: Frogger going down"
 					#playSound( frogger.s_hop )
-	return 0
 
 def updateGameState( ):
+	if game.drawBG == TRUE:
+		game.drawBG = FALSE
+		configGameScreen( )
+
 	if game.lives <= 0:
+		print "GAME OVER"
 		game.goDelay += 1
 		drawGameOver( )
 		if goDelay > 7:
@@ -260,7 +297,7 @@ def updateGameState( ):
 			game.level	= 0
 			game.score	= 0
 			game.freefrog	= 0
-			game.drawBG	= FALSE
+			game.drawBG	= TRUE
 #			for i = 0; i < MAX_GOALS; i++:
 #				goals[i].occupied = 0
 		return 500
@@ -269,18 +306,105 @@ def updateGameState( ):
 
 	return 50
 
-def drawGameScreen( ):
-	if frog.direction: moveFrog( )
-			
+##
+## This configures a new game
+##
+def configGameScreen( ):
+	game.drawBG = FALSE
+
+	print "Configing game screen"
+
 	screen.blit( gfx.background_image, ( 0, 0 ) )
+
+	##
+	## Cars drive on rows 1 - 5
+	## Logs are on rows 8, 9 and 11, 8 = short, 9 long, 11 medium
+	## Turtles are on rows 7, 10
+	## Frogger starts on Row 0, 
+	## Sidewalk is row 6
+	## and the goal is row 12
+	##
+
+	## Configure goals
+
+	## Configure wood
+
+	## Configure turtles
+
+	## Configure vehicles
+
+	## Reset the fly timer
+
+	## Reset and draw frogger for start
+	froggerReset( )
+
+def froggerReset( ):
+	game.timeLeft = MAX_TIMER
+
+	frog.pos        = [ FROG_START_X, FROG_START_Y ]
+	frog.oldPos     = frog.pos
+	frog.hopCount   = 0
+	frog.direction  = 0
+	frog.currentRow = 0
+	frog.alive	= TRUE
+	frog.riding	= FALSE
+	frog.deathType	= 0  # Death type SPLAT or SPLASH
+	frog.deathCount = 0  # Death animation timer
+
+	frog.src	= [ 0, 0, FRAME, FRAME ]
+	frog.dst	= frog.pos
+
+def drawImage( srcimg, sx, sy, sw, sh, dstimg, dx, dy, alpha ):
+	return 1
+
+def drawGameScreen( ):
+	if frog.direction: 
+		moveFrog( )
+
+	screen.blit( gfx.background_image, ( 0, 0 ) )
+	screen.blit( gfx.frogger_image, ( frog.pos ), ( frog.src ) )
 
 	pygame.display.flip( )
 
 def moveFrog( ):
+	x = FRAME
+
+	frog.oldPos = frog.pos
+	( X, Y ) = frog.pos
+	
+	##
+	## Time to actually move frogger
+	##
+	if frog.direction == UP:
+		Y -= ( HOP_DISTANCE / HOP_SPEED )
+	elif frog.direction == DOWN:
+		x = ( 5 * FRAME )
+		Y += ( HOP_DISTANCE / HOP_SPEED )
+	elif frog.direction == LEFT:
+		x = ( 7 * FRAME )
+		X -= ( HOP_DISTANCE / HOP_SPEED )
+	elif frog.direction == RIGHT:
+		x = ( 3 * FRAME )
+		X += ( HOP_DISTANCE / HOP_SPEED )
+
+	frog.pos   = ( X, Y )
+	##
+	## Change the image frame to display
+	## 
+	frog.src = ( x, 0, FRAME, FRAME )
+
 	frog.hopCount += 1
-	if frog.hopCount > 60:
-		print "D: Try Again"
+
+	if frog.hopCount >= HOP_SPEED:
+		frog.hopCount  = 0
 		frog.direction = FALSE
+		game.score     += SCORE_HOP
+#		frog.src       -= ( FRAME )
+
+	checkFroggerBorder( )
+
+def checkFroggerBorder( ):
+	pass
 
 def heartbeat( ):
 	ticks = 0;
@@ -310,7 +434,7 @@ def drawTitleScreen( ):
 def loadMedia( ):
 	print "D: Loading media"
 	gfx.background_image, gfx.background_rect = loadImage( 'gameboard.png' )
-	gfx.frogger_image, gfx.frogger_rect = loadImage( 'frogger.png' )
+	gfx.frogger_image, gfx.frogger_rect = loadImage( 'frogger.png', -1 )
 	gfx.title_image, gfx.title_rect = loadImage( 'pyfrog-title.png', -1 )
 	
 	snd.hop = loadSound( 'dp_frogger_hop.ogg' )
@@ -321,13 +445,11 @@ def loadImage( filename, colorKey = None ):
 	fullname = os.path.join( 'images', filename )
 
 	try:
-		image = pygame.image.load( fullname )
+		image = pygame.image.load( fullname ).convert( )
 	except pygame.error, message:
 		print "ERROR: Failed to load image: " + fullname
 		raise SystemExit, message
 	
-	image = image.convert( )
-
 	if colorKey is not None:
 		if colorKey is -1:
 			colorKey = image.get_at( ( 0, 0 ) )
