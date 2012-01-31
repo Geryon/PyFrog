@@ -256,31 +256,26 @@ def keyEvents( event ):
 		if game.level and game.playing and frog.alive:
 			if event.key == K_LEFT:
 				if not frog.direction:
-					print "D: Frogger going left"
+					snd.hop.play()
 					frog.hopCount = 0
 					frog.direction = LEFT
-					#snd.hop.play()
 			if event.key == K_RIGHT:
 				if not frog.direction:
-					print "D: Frogger going right"
+					snd.hop.play()
 					frog.hopCount = 0
 					frog.direction = RIGHT
-					#snd.hop.play()
-					#playSound( frogger.s_hop )
 			if event.key == K_UP:
 				if not frog.direction:
+					snd.hop.play()
 					frog.hopCount = 0
 					frog.direction = UP
 					frog.currentRow += 1
-					print "D: Frogger going up"
-					#playSound( frogger.s_hop )
 			if event.key == K_DOWN:
 				if not frog.direction:
+					snd.hop.play()
 					frog.hopCount = 0
 					frog.direction = DOWN
 					frog.currentRow -= 1
-					print "D: Frogger going down"
-					#playSound( frogger.s_hop )
 
 def updateGameState( ):
 	if game.drawBG == TRUE:
@@ -465,9 +460,9 @@ def loadSound( name ):
 		return noSound( )
 
 	fullname = os.path.join( 'sounds', name )
-	if os.path.exists( fullname ) == False:
+	try:
 		sound = pygame.mixer.Sound( fullname )
-	else:
+	except pygame.error, message:
 		print "ERROR: Audio file missing: " + fullname
 		return noSound
 
