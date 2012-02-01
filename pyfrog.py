@@ -4,195 +4,9 @@ import os, sys
 import pygame
 from pygame.locals import *
 
-class GlobalDefs( ):
-	##
-	## Define our game initial variables
-	##
-	def __init__( self ):
-		self.Debug		= 1
-		self.Version		= "$Id: pyfrog.py,v 1.5 2011-11-05 04:07:53 nick Exp $"
-		self.Title 		= "PyFrog"
-		self.Screen_width 	= 640
-		self.Screen_height 	= 480
-		self.Colorkey		= ( 255, 0, 255 )
-		self.Frog_start_x	= 306
-		self.Frog_start_y	= 425
-		self.Frame		= 24
-		self.Hframe		= self.Frame / 2
-		self.Hop_distance	= 30
-		self.Hop_speed		= 3
-		self.Row_base		= 425
-		self.Left_side		= 115
-		self.Right_side		= 525
-		self.Splash		= 1
-		self.Splat		= 2
-		
-		##
-		## Baddies
-		##
-		self.Vehicle		= 0
-		self.Log		= 1
-		self.Turtle		= 2
-		self.Gator		= 3
-		self.Snake		= 4
-		self.Beaver		= 5
-		
-		##
-		## Goal areas
-		##
-		self.Max_goals		= 5
-		
-		##
-		## Logs
-		##
-		self.Short_log		= 4
-		self.Medium_log		= 6
-		self.Long_log		= 9
-		self.Max_wood		= 7
-		
-		##
-		## Input
-		##
-		self.Up			= 273
-		self.Down		= 274
-		self.Right		= 275
-		self.Left		= 276
-		
-		##
-		## Turtles
-		##
-		self.Dive_start_time	= 50
-		self.Dive_phase_time	= 20
-		self.Max_turtles	= 9
-		self.Turtle_anim_time	= 5
-		
-		##
-		## Vehicles
-		##
-		self.Max_vehicles	= 40
-		
-		##
-		## Our points table
-		##
-		self.Score_hop		= 10
-		self.Score_goal		= 50
-		self.Score_level	= 1000
-		self.Score_fly		= 150
-		self.Score_pink		= 200
-		self.Score_seconds	= 10
-		self.High_score		= 4630
-		self.Score_free_frog	= 2000
-		self.Lives		= 3
-		
-		##
-		## The green game timer
-		##
-		self.Max_timer		= 350
-	
+import config, objects, media
+
 global screen
-
-##
-## Some general game state stats
-##
-class mainGame( ):
-	def __init__( self ):
-		self.level 		= 0
-		self.playing 		= False
-		self.goDelay		= 0
-		self.score		= 0
-		self.lives		= 0
-		self.freefrog		= 0
-		self.drawBG 		= False
-		self.timeLeft  		= Global.Max_timer
-		
-class images( ):
-	def __init__( self ):
-		self.title_image	= 0
-		self.title_rect		= 0
-		self.frogger_image	= 0
-		self.frogger_rect	= 0
-		self.background_image	= 0
-		self.background_rect	= 0
-
-class sounds( ):
-	def __init__( self ):
-		self.hop		= 0
-
-class Log( pygame.sprite.Sprite ):
-	def __init__( self ):
-		pygame.sprite.Sprite.__init__( self )
-		self.size 		= 0
-		self.placement 		= [ 0, 0 ]
-		self.oPlacement 	= [ 0, 0 ]
-		self.row		= 0
-		self.speed		= 0
-		self.pink		= 0
-		self.gator		= 0
-		
-	def update( self ):
-		self.placement += self.speed
-
-class Vehicles( pygame.sprite.Sprite ):
-	def __init__( self ): 
-		self.placement 		= [ 0, 0 ]
-		self.oPlacement		= [ 0, 0 ]
-		self.direction		= 0
-		self.row		= 0
-		self.speed		= 0
-		self.level		= 0
-		self.image		= 0
-	
-	def update( self ):
-		self.placement 		+= self.speed
-
-	def draw( self ):
-		print "D: Display Vehicle"		
-
-class Goals( pygame.sprite.Sprite ):
-	def __init__( self ):
-		pygame.sprite.Sprite.__init__( self )
-		self.x, self.y, self.w, self.h = 0
-		self.occupied 	= 0
-		self.fly	= 0
-		self.gator	= 0
-
-class pyFrog( ):
-	def __init__( self ):
-	#	pygame.sprite.Sprite.__init( self )
-		self.pos	= [ 0, 0 ]
-		self.oldPos	= [ 0, 0 ]	
-		self.direction	= 0
-		self.location	= 0
-		self.hopCount	= 0
-		self.currentRow	= 0
-		self.alive	= 1
-		self.riding	= 0
-		self.ridingType	= 0
-		self.deathType	= 0
-		self.deathCount	= 0
-	
-		self.src	= [ 0, 0, Global.Frame, Global.Frame ]
-		self.dst	= [ 0, 0 ]
-
-	def draw( self ):
-		screen.blit( gfx.frogger_image, self.pos, self.src )
-
-	def reset( self ):
-		game.timeLeft = Global.Max_timer
-
-		self.pos        = [ Global.Frog_start_x, Global.Frog_start_y ]
-		self.oldPos     = self.pos
-		self.hopCount   = 0
-		self.direction  = 0
-		self.currentRow = 0
-		self.alive	= True
-		self.riding	= False
-		self.deathType	= 0  # Death type SPLAT or SPLASH
-		self.deathCount = 0  # Death animation timer
-	
-		self.src	= [ 0, 0, Global.Frame, Global.Frame ]
-		self.dst	= self.pos
-
 
 def main( ):
 	pygame.mixer.init( )
@@ -206,12 +20,12 @@ def main( ):
 	global gfx
 	global snd
 	global Global
-	Global = GlobalDefs( )
+	Global = config.GlobalDefs( )
 	screen = pygame.display.set_mode( ( Global.Screen_width, Global.Screen_height ) )
-	game   = mainGame( )
-	frog   = pyFrog( )
-	gfx    = images( )
-	snd    = sounds( )
+	game   = config.mainGame( )
+	frog   = objects.pyFrog( Global )
+	gfx    = media.images( )
+	snd    = media.sounds( )
 
 	pygame.display.set_caption( Global.Title )
 	pygame.mouse.set_visible( 0 )
@@ -352,7 +166,7 @@ def configGameScreen( ):
 	## Reset the fly timer
 
 	## Reset and draw frogger for start
-	frog.reset( )
+	frog.reset( Global )
 
 def drawImage( srcimg, sx, sy, sw, sh, dstimg, dx, dy, alpha ):
 	return 1
@@ -362,7 +176,7 @@ def drawGameScreen( ):
 		moveFrog( )
 
 	screen.blit( gfx.background_image, ( 0, 0 ) )
-	frog.draw( )
+	frog.draw( screen, gfx )
 
 	pygame.display.flip( )
 
