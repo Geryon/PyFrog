@@ -14,8 +14,6 @@ TITLE 		= "PyFrog"
 SCREEN_WIDTH 	= 640
 SCREEN_HEIGHT 	= 480
 COLORKEY	= ( 255, 0, 255 )
-TRUE		= 1
-FALSE		= 0
 FROG_START_X	= 306
 FROG_START_Y	= 425
 FRAME		= 24
@@ -98,12 +96,12 @@ global screen
 class mainGame( ):
 	def __init__( self ):
 		self.level 	= 0
-		self.playing 	= FALSE
+		self.playing 	= False
 		self.goDelay	= 0
 		self.score	= 0
 		self.lives	= 0
 		self.freefrog	= 0
-		self.drawBG 	= FALSE
+		self.drawBG 	= False
 		self.timeLeft   = MAX_TIMER
 		
 class images( ):
@@ -200,7 +198,7 @@ def main( ):
 
 def beginGame( ):
 	next_heartbeat = 0
-	done = FALSE
+	done = False
 
 	if loadMedia( ) <= 0:
 		print "Error: Failed to load graphics and audio!\n" 
@@ -234,9 +232,9 @@ def keyEvents( event ):
 		elif event.key == K_p: 
 			if game.level:
 				if game.playing:
-					game.playing = FALSE
+					game.playing = False
 				else:
-					game.playing = TRUE
+					game.playing = True
 				print "D: Pausing Game"
 				
 		##
@@ -245,9 +243,9 @@ def keyEvents( event ):
 		elif event.key == K_1:
 			if not game.level and not game.playing:
 				game.level   = 1
-				game.playing = TRUE
+				game.playing = True
 				game.lives   = LIVES
-				game.drawBG  = TRUE
+				game.drawBG  = True
 				print "D: Starting Game"
 
 		##
@@ -278,8 +276,8 @@ def keyEvents( event ):
 					frog.currentRow -= 1
 
 def updateGameState( ):
-	if game.drawBG == TRUE:
-		game.drawBG = FALSE
+	if game.drawBG == True:
+		game.drawBG = False
 		configGameScreen( )
 
 	if game.lives <= 0:
@@ -287,12 +285,12 @@ def updateGameState( ):
 		game.goDelay += 1
 		drawGameOver( )
 		if goDelay > 7:
-			game.playing	= FALSE
+			game.playing	= False
 			game.lives	= 0
 			game.level	= 0
 			game.score	= 0
 			game.freefrog	= 0
-			game.drawBG	= TRUE
+			game.drawBG	= True
 #			for i = 0; i < MAX_GOALS; i++:
 #				goals[i].occupied = 0
 		return 500
@@ -305,7 +303,7 @@ def updateGameState( ):
 ## This configures a new game
 ##
 def configGameScreen( ):
-	game.drawBG = FALSE
+	game.drawBG = False
 
 	print "Configing game screen"
 
@@ -341,8 +339,8 @@ def froggerReset( ):
 	frog.hopCount   = 0
 	frog.direction  = 0
 	frog.currentRow = 0
-	frog.alive	= TRUE
-	frog.riding	= FALSE
+	frog.alive	= True
+	frog.riding	= False
 	frog.deathType	= 0  # Death type SPLAT or SPLASH
 	frog.deathCount = 0  # Death animation timer
 
@@ -391,8 +389,8 @@ def moveFrog( ):
 	frog.hopCount += 1
 
 	if frog.hopCount >= HOP_SPEED:
-		frog.hopCount  = 0
-		frog.direction = FALSE
+		frog.hopCount  = 1
+		frog.direction = False
 		game.score     += SCORE_HOP
 #		frog.src       -= ( FRAME )
 
