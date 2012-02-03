@@ -102,3 +102,4 @@ class mainGame( ):
 		self.freefrog		= 0
 		self.drawBG 		= False
 		self.timeLeft  		= 0
+		self.vehicle		= [ ]

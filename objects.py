@@ -31,6 +31,8 @@ class Vehicles( pygame.sprite.Sprite ):
 
 	def draw( self ):
 		print "D: Display Vehicle"		
+	def Set( self, row, X, speed, level ):
+		pass
 
 class Goals( pygame.sprite.Sprite ):
 	def __init__( self ):
@@ -51,8 +53,8 @@ class pyFrog( ):
 		self.location	= 0
 		self.hopCount	= 0
 		self.currentRow	= 0
-		self.alive	= 1
-		self.riding	= 0
+		self.alive	= True
+		self.riding	= False
 		self.ridingType	= 0
 		self.deathType	= 0
 		self.deathCount	= 0
