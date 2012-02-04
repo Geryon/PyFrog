@@ -20,14 +20,14 @@ def main( ):
 	global gfx
 	global snd
 	global Global
-	global vehicles
+	global col 
+	col    = objects.Collision( )
 	Global = config.GlobalDefs( )
 	screen = pygame.display.set_mode( ( Global.Screen_width, Global.Screen_height ) )
 	game   = config.mainGame( )
-	frog   = objects.pyFrog( Global )
+	frog   = objects.pyFrog( )
 	gfx    = media.images( )
 	snd    = media.sounds( )
-	vehicles = objects.Vehicles( )
 
 	pygame.display.set_caption( Global.Title )
 	pygame.mouse.set_visible( 0 )
@@ -51,8 +51,8 @@ def beginGame( ):
 		for event in pygame.event.get( ):
 			if keyEvents( event ): return 
 		
-#		if pygame.GetTicks( ) >= next_heartbeat:
-#			next_hearbeat = pygame.GetTicks( ) + heartbeat( )
+#		if clock.tick( ) >= next_heartbeat:
+#			next_hearbeat = clock.tick( ) + heartbeat( )
 
 		clock.tick( heartbeat( ) )
 
@@ -64,6 +64,20 @@ def keyEvents( event ):
 		if event.key == K_ESCAPE or event.key == K_q: 
 			print "D: Exiting game"
 			return 1
+
+		##
+		## Artificially increase the level
+		##
+		elif event.key == K_l:
+			game.level += 1
+			print "D: Increasing level to ", game.level
+
+		##
+		## kill the frog
+		##
+		elif event.key == K_k:
+			frog.alive  = False
+			print "D: Killed the frog."
 
 		##
 		## Key actions if paused
@@ -138,6 +152,9 @@ def updateGameState( ):
 #			for i = 0; i < MAX_GOALS; i++:
 #				goals[i].occupied = 0
 		return 500
+	else:
+		## Move everything
+		for n in range(19): game.vehicle[n].update( )
 	
 	drawGameScreen( )
 
@@ -168,34 +185,9 @@ def configGameScreen( ):
 
 	## Configure turtles
 
+	## Configure vehicles
 	##                      row, X, speed, level
-	## Row 1 -- yellow car
-	game.vehicle.append( vehicles.Set( 1, 0, 1, 1 ) )
-	game.vehicle.append( vehicles.Set( 1, 100, 1, 3 ) )
-	game.vehicle.append( vehicles.Set( 1, 200, 1, 1 ) )
-	game.vehicle.append( vehicles.Set( 1, 300, 1, 1 ) )
-	## Row 2 -- tractor
-	game.vehicle.append( vehicles.Set( 2, 0, 3, 1 ) )
-	game.vehicle.append( vehicles.Set( 2, 100, 3, 2 ) )
-	game.vehicle.append( vehicles.Set( 2, 200, 3, 1 ) )
-	game.vehicle.append( vehicles.Set( 2, 300, 3, 3 ) )
-	## Row 3 -- pink car
-	game.vehicle.append( vehicles.Set( 3, 75, 2,1  ) )
-	game.vehicle.append( vehicles.Set( 3, 150, 2, 3 ) )
-	game.vehicle.append( vehicles.Set( 3, 225, 2, 1 ) )
-	game.vehicle.append( vehicles.Set( 3, 375, 2, 2 ) )
-	## Row 4 -- white car
-	game.vehicle.append( vehicles.Set( 4, 75, 5, 1 ) )
-	game.vehicle.append( vehicles.Set( 4, 150, 5, 3 ) )
-	game.vehicle.append( vehicles.Set( 4, 225, 5, 2 ) )
-	game.vehicle.append( vehicles.Set( 4, 375, 5, 3 ) )
-	## Row 5 -- Trucks 
-	game.vehicle.append( vehicles.Set( 5, 30, 3, 1 ) )
-	game.vehicle.append( vehicles.Set( 5, 150, 3, 1 ) )
-	game.vehicle.append( vehicles.Set( 5, 250, 3, 1 ) )
-	game.vehicle.append( vehicles.Set( 5, 350, 3, 3 ) )
-
-	# drawVehicles( )
+	for n in range(19): game.vehicle.append( objects.Vehicles( n ) )
 
 	## Reset the fly timer
 
@@ -210,15 +202,15 @@ def drawGameScreen( ):
 		moveFrog( )
 
 	screen.blit( gfx.background_image, ( 0, 0 ) )
+	for n in range(19): game.vehicle[n].draw( screen, gfx, game )
 	frog.draw( screen, gfx )
 
 	pygame.display.flip( )
 
 def moveFrog( ):
-	x = Global.Frame
-
+	x           = Global.Frame
 	frog.oldPos = frog.pos
-	( X, Y ) = frog.pos
+	( X, Y )    = frog.pos
 	
 	##
 	## Time to actually move frogger
@@ -259,7 +251,7 @@ def moveFrog( ):
 def checkFrogBorder( ):
 	( X, Y ) = frog.pos
 	( x, y, w, h ) = frog.src
-	if ( Y - 5 ) >= getRowPixel( 0 ):
+	if ( Y - 5 ) >= col.getRowPixel( 0 ):
 		frog.pos = frog.oldPos
 		frog.currentRow = 0
 		return 0
@@ -269,12 +261,6 @@ def checkFrogBorder( ):
 		else:
 			frog.alive = False 
 	return 1
-
-##
-## This calculates the pixel top of the requested row
-##
-def getRowPixel( row ):
-	return Global.Row_base - ( row * Global.Hop_distance )
 
 def heartbeat( ):
 	ticks = 0;
