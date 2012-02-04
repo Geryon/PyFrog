@@ -16,49 +16,76 @@ class Collision( ):
 	def getRowPixel( self, row ):
 		return self.Global.Row_base - ( row * self.Global.Hop_distance )		
 
-class Log( pygame.sprite.Sprite ):
-	def __init__( self ):
+class Logs( pygame.sprite.Sprite ):
+	def __init__( self, log ):
 		pygame.sprite.Sprite.__init__( self )
-		self.size 		= 0
-		self.placement 		= [ 0, 0 ]
-		self.oPlacement 	= [ 0, 0 ]
-		self.row		= 0
-		self.speed		= 0
+		self.Global		= config.GlobalDefs( )
+		self.Collision		= Collision( )
+		size, speed, row, X     = self.fetchLogData( log )
+		self.size 		= size
+		self.placement 		= [ self.Global.Left_side + X, self.Collision.getRowPixel( row ) ]
+		self.oPlacement 	= self.placement
+		self.row		= row
+		self.speed		= speed
 		self.pink		= 0
 		self.gator		= 0
+		pixelSrc		= 0
+		pixelSrc		= self.Global.Frame * self.Global.Long if self.size == self.Global.Medium else self.Global.Frame * ( self.Global.Long + self.Global.Medium )
+		self.src		= [ 
+						pixelSrc,
+						self.Global.Frame,
+						self.Global.Frame * self.size,
+						self.Global.Frame
+					  ]
 		
-	def update( self ):
-		self.placement += self.speed
+	def update( self, game ):
+		if self.placement[0] > self.Global.Right_side + 5:
+			self.placement[0] = self.Global.Left_side - self.src[2] - 5
+		self.placement[0] += self.speed + game.level * .25
+
+	def draw( self, screen, gfx ):
+		screen.blit( gfx.frogger_image, self.placement, self.src )
+
+	def fetchLogData( self, log ):
+		Log = [
+			[ self.Global.Long,   3, 9,  0   ],
+			[ self.Global.Long,   3, 9,  305 ],
+			[ self.Global.Short,  2, 8,  25  ],
+			[ self.Global.Short,  2, 8,  160 ],
+			[ self.Global.Short,  2, 8,  380 ],
+			[ self.Global.Medium, 4, 11, 140 ],
+			[ self.Global.Medium, 4, 11, 440 ],
+		      ]
+		return Log[log]
 
 class Vehicles( pygame.sprite.Sprite ):
 	def __init__( self, vehicle ):
 		self.Global 		= config.GlobalDefs( )
 		self.Collision		= Collision( )
 		row, X, speed, level    = self.fetchVehicleData( vehicle )
-		self.placement 		= [ 0, 0 ]
-		self.placement[0]       = self.Global.Left_side + X
-                self.placement[1]       = self.Collision.getRowPixel( row )
+		self.placement		= [ self.Global.Left_side + X, self.Collision.getRowPixel( row ) ]
 		self.oPlacement		= self.placement
 		self.direction		= self.Global.Left if row % 2 > 0 else self.Global.Right 
 		self.row		= row
 		self.speed		= speed
 		self.level		= level
-		self.src		= [ 0, 0, 0, 0 ]
-		self.src[0]		= self.Global.Frame * ( 4 + row )
-		self.src[1]		= self.Global.Frame * 2
-		self.src[2]		= self.Global.Frame * 2 if row == 5 else self.Global.Frame
-		self.src[3]		= self.Global.Frame
+		self.src		= [ 
+				   	    self.Global.Frame * ( 4 + row ),
+			   		    self.Global.Frame * 2,
+				   	    self.Global.Frame * 2 if row == 5 else self.Global.Frame,
+				   	    self.Global.Frame
+					  ]
 		self.image		= 0
 
-	def update( self ):
+	def update( self, game ):
 		if self.direction == self.Global.Right:
 			if self.placement[0] > self.Global.Right_side + 5:
 				self.placement[0] = self.Global.Left_side - self.src[2] - 5
-			self.placement[0] += self.speed
+			self.placement[0] += self.speed + game.level * .25
 		else:
 			if self.placement[0] < self.Global.Left_side - 5:
 				self.placement[0] = self.Global.Right_side - self.src[2] + 5
-			self.placement[0] -= self.speed
+			self.placement[0] -= self.speed + game.level * .25
 
 	def draw( self, screen, gfx, game ):
 		if game.level >= self.level: screen.blit( gfx.frogger_image, self.placement, self.src )

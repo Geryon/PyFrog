@@ -154,11 +154,12 @@ def updateGameState( ):
 		return 500
 	else:
 		## Move everything
-		for n in range(19): game.vehicle[n].update( )
+		for n in range(19): game.vehicle[n].update( game )
+		for n in range(6): game.log[n].update( game )
 	
 	drawGameScreen( )
 
-	return 50
+	return 25
 
 ##
 ## This configures a new game
@@ -182,11 +183,11 @@ def configGameScreen( ):
 	## Configure goals
 
 	## Configure logs
-
+	for n in range(7): game.log.append( objects.Logs( n ) )
+ 
 	## Configure turtles
 
 	## Configure vehicles
-	##                      row, X, speed, level
 	for n in range(19): game.vehicle.append( objects.Vehicles( n ) )
 
 	## Reset the fly timer
@@ -203,6 +204,7 @@ def drawGameScreen( ):
 
 	screen.blit( gfx.background_image, ( 0, 0 ) )
 	for n in range(19): game.vehicle[n].draw( screen, gfx, game )
+	for n in range(6): game.log[n].draw( screen, gfx )
 	frog.draw( screen, gfx )
 
 	pygame.display.flip( )

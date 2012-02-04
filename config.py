@@ -45,9 +45,9 @@ class GlobalDefs( ):
 		##
 		## Logs
 		##
-		self.Short_log		= 4
-		self.Medium_log		= 6
-		self.Long_log		= 9
+		self.Long		= 9
+		self.Medium		= 6
+		self.Short		= 4
 		self.Max_wood		= 7
 		
 		##
@@ -103,3 +103,4 @@ class mainGame( ):
 		self.drawBG 		= False
 		self.timeLeft  		= 0
 		self.vehicle		= [ ]
+		self.log		= [ ]
