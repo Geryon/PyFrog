@@ -4,7 +4,7 @@ import os, sys
 import pygame
 from pygame.locals import *
 
-import config, objects, media
+import config, objects, media, collision
 
 global screen
 
@@ -21,7 +21,7 @@ def main( ):
 	global snd
 	global Global
 	global col 
-	col    = objects.Collision( )
+	col    = collision.Collision( )
 	Global = config.GlobalDefs( )
 	screen = pygame.display.set_mode( ( Global.Screen_width, Global.Screen_height ) )
 	game   = config.mainGame( )
@@ -36,7 +36,7 @@ def main( ):
 
 
 def beginGame( ):
-	next_heartbeat = 0
+#	next_heartbeat = 0
 	done = False
 
 	if loadMedia( ) <= 0:
@@ -59,8 +59,6 @@ def beginGame( ):
 def keyEvents( event ):
 	if event.type == QUIT: return 1
 	elif event.type == KEYDOWN:
-		print "D: Key Event Type: ", event.key
-
 		if event.key == K_ESCAPE or event.key == K_q: 
 			print "D: Exiting game"
 			return 1
@@ -154,8 +152,9 @@ def updateGameState( ):
 		return 500
 	else:
 		## Move everything
-		for n in range(19): game.vehicle[n].update( game )
-		for n in range(6): game.log[n].update( game )
+		for n in range(Global.Max_vehicles): game.vehicle[n].update( game )
+		for n in range(Global.Max_logs):     game.log[n].update( game )
+		for n in range(Global.Max_turtles):  game.turtle[n].update( game )
 	
 	drawGameScreen( )
 
@@ -183,12 +182,13 @@ def configGameScreen( ):
 	## Configure goals
 
 	## Configure logs
-	for n in range(7): game.log.append( objects.Logs( n ) )
+	for n in range(Global.Max_logs): game.log.append( objects.Logs( n ) )
  
 	## Configure turtles
+	for n in range(Global.Max_turtles): game.turtle.append( objects.Turtles( n ) )
 
 	## Configure vehicles
-	for n in range(19): game.vehicle.append( objects.Vehicles( n ) )
+	for n in range(Global.Max_vehicles): game.vehicle.append( objects.Vehicles( n ) )
 
 	## Reset the fly timer
 
@@ -202,9 +202,22 @@ def drawGameScreen( ):
 	if frog.direction: 
 		moveFrog( )
 
+	if frog.alive and col.collisionRow( frog, game ):
+		if frog.currentRow < 6 or frog.currentRow >= 12:
+			# playsound( frog.s_squash
+			frog.deathType = Global.Splat
+			frog.alive     = False
+			print( "D: Frog is splat or in thorn bushes!!" )
+		else:
+			# playSound( frog.s_splash)
+			frog.deathType = Global.Splash
+			frog.alive     = False
+			print( "D: Frog in water!!" )
+
 	screen.blit( gfx.background_image, ( 0, 0 ) )
-	for n in range(19): game.vehicle[n].draw( screen, gfx, game )
-	for n in range(6): game.log[n].draw( screen, gfx )
+	for n in range(Global.Max_vehicles): game.vehicle[n].draw( screen, gfx, game )
+	for n in range(Global.Max_logs)    : game.log[n].draw( screen, gfx )
+	for n in range(Global.Max_turtles) : game.turtle[n].draw( screen, gfx )
 	frog.draw( screen, gfx )
 
 	pygame.display.flip( )
@@ -245,24 +258,7 @@ def moveFrog( ):
 		game.score     += Global.Score_hop
 #		frog.src       -= ( FRAME )
 
-	checkFrogBorder( )
-
-## 
-## Set down some boundries for our frog.
-##
-def checkFrogBorder( ):
-	( X, Y ) = frog.pos
-	( x, y, w, h ) = frog.src
-	if ( Y - 5 ) >= col.getRowPixel( 0 ):
-		frog.pos = frog.oldPos
-		frog.currentRow = 0
-		return 0
-	if X <= Global.Left_side or X + w >= Global.Right_side:
-		if frog.currentRow == 0 or frog.currentRow == 6:
-			frog.pos = frog.oldPos
-		else:
-			frog.alive = False 
-	return 1
+	col.checkFrogBorder( frog )
 
 def heartbeat( ):
 	ticks = 0;

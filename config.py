@@ -69,7 +69,9 @@ class GlobalDefs( ):
 		##
 		## Vehicles
 		##
-		self.Max_vehicles	= 40
+		self.Max_vehicles	= 19
+		self.Max_turtles	= 8
+		self.Max_logs		= 7
 		
 		##
 		## Our points table
@@ -104,3 +106,4 @@ class mainGame( ):
 		self.timeLeft  		= 0
 		self.vehicle		= [ ]
 		self.log		= [ ]
+		self.turtle		= [ ]

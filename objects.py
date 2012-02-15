@@ -1,26 +1,13 @@
 import os, sys
 import pygame
 from pygame.locals import *
-import config
-
-##
-## All collision detection functionality is here
-##
-class Collision( ):
-	def __init__( self ):
-		self.Global = config.GlobalDefs( )
-
-	##
-	## This calculates the pixel top of the requested row
-	##
-	def getRowPixel( self, row ):
-		return self.Global.Row_base - ( row * self.Global.Hop_distance )		
+import config, collision
 
 class Logs( pygame.sprite.Sprite ):
 	def __init__( self, log ):
 		pygame.sprite.Sprite.__init__( self )
 		self.Global		= config.GlobalDefs( )
-		self.Collision		= Collision( )
+		self.Collision		= collision.Collision( )
 		size, speed, row, X     = self.fetchLogData( log )
 		self.size 		= size
 		self.placement 		= [ self.Global.Left_side + X, self.Collision.getRowPixel( row ) ]
@@ -30,7 +17,10 @@ class Logs( pygame.sprite.Sprite ):
 		self.pink		= 0
 		self.gator		= 0
 		pixelSrc		= 0
-		pixelSrc		= self.Global.Frame * self.Global.Long if self.size == self.Global.Medium else self.Global.Frame * ( self.Global.Long + self.Global.Medium )
+		if self.size == self.Global.Medium:
+			pixelSrc	= self.Global.Frame * self.Global.Long 
+		elif self.size == self.Global.Short:
+			pixelSrc	= self.Global.Frame * ( self.Global.Long + self.Global.Medium ) 
 		self.src		= [ 
 						pixelSrc,
 						self.Global.Frame,
@@ -61,7 +51,7 @@ class Logs( pygame.sprite.Sprite ):
 class Vehicles( pygame.sprite.Sprite ):
 	def __init__( self, vehicle ):
 		self.Global 		= config.GlobalDefs( )
-		self.Collision		= Collision( )
+		self.Collision		= collision.Collision( )
 		row, X, speed, level    = self.fetchVehicleData( vehicle )
 		self.placement		= [ self.Global.Left_side + X, self.Collision.getRowPixel( row ) ]
 		self.oPlacement		= self.placement
@@ -121,6 +111,56 @@ class Vehicles( pygame.sprite.Sprite ):
 				   [ 5, 350, 3, 3 ]
 			   ]
 		return Vehicles[vehicle]
+
+class Turtles( pygame.sprite.Sprite ):
+	def __init__( self, turtle ):
+		self.canDive, self.diveTime, self.speed, self.row, self.X, self.count = self.fetchTurtleData(turtle)
+		self.Global	= config.GlobalDefs()
+		self.Collision	= collision.Collision( )
+		self.diveStep	= 0
+		self.animStep	= 0
+		self.animDelay	= 0
+		self.animFrame  = 0
+		self.pos	= [ self.Global.Left_side + self.X, self.Collision.getRowPixel( self.row ) ]
+		self.oPos	= self.pos
+		self.src	= [ 0, self.Global.Frame * 2, self.Global.Frame, self.Global.Frame ]
+
+	def draw( self, screen, gfx ):
+		tsrc     = self.src
+		tsrc[0]  = self.Global.Frame * self.animStep
+		for n in range(self.count):	
+			X  = self.pos[0]
+			X += ( self.Global.Frame + 3 ) * n
+			screen.blit( gfx.frogger_image, [ X, self.pos[1] ], tsrc )
+
+	def update( self, game ):
+		## move the turtles and wrap as necessary
+		self.pos[0] -= self.speed		
+		if self.pos[0] <= self.Global.Left_side - ( self.count * self.Global.Frame ) + 10:
+			self.pos[0] = self.Global.Right_side + 10;
+
+		## Set animation for the tail
+		if self.animDelay >= self.Global.Turtle_anim_time:
+			self.animDelay  = 0
+			self.animStep  += 1
+			if self.animStep > 2: self.animStep = 0
+		else:
+			self.animDelay += 1
+
+	def fetchTurtleData( self, turtle ):
+		Turtles = [
+				## DIVE, DIVE_TIME, SPEED, ROW, STARTX, COUNT
+				[ False, 0, 1, 7,  0,   3 ],
+				[ True,  0, 1, 7,  125, 3 ],
+				[ False, 0, 1, 7,  250, 3 ],
+				[ True, 30, 1, 7,  375, 3 ],
+				[ False, 0, 2, 10, 100, 2 ],
+				[ True, 50, 2, 10, 200, 2 ],
+				[ False, 0, 2, 10, 300, 2 ],
+				[ True, 10, 2, 10, 400, 2 ],
+				[ False, 0, 2, 10, 500, 2 ]
+			  ]
+		return Turtles[ turtle ]
 
 class Goals( pygame.sprite.Sprite ):
 	def __init__( self ):
