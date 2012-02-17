@@ -31,13 +31,14 @@ class Logs( pygame.sprite.Sprite ):
 	def update( self, game ):
 		if self.placement[0] > self.Global.Right_side + 5:
 			self.placement[0] = self.Global.Left_side - self.src[2] - 5
-		self.placement[0] += self.speed + game.level * .25
+		self.placement[0] += self.speed
 
 	def draw( self, screen, gfx ):
 		screen.blit( gfx.frogger_image, self.placement, self.src )
 
 	def fetchLogData( self, log ):
 		Log = [
+			## Log_Size, Speed, Row, X_Pos
 			[ self.Global.Long,   3, 9,  0   ],
 			[ self.Global.Long,   3, 9,  305 ],
 			[ self.Global.Short,  2, 8,  25  ],
@@ -183,6 +184,7 @@ class pyFrog( ):
 		self.alive	= True
 		self.riding	= False
 		self.ridingType	= 0
+		self.ridingIdx  = 0
 		self.deathType	= 0
 		self.deathCount	= 0
 	

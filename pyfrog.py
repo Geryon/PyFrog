@@ -199,8 +199,8 @@ def drawImage( srcimg, sx, sy, sw, sh, dstimg, dx, dy, alpha ):
 	return 1
 
 def drawGameScreen( ):
-	if frog.direction: 
-		moveFrog( )
+	if frog.direction: moveFrog( )
+	if frog.riding:    ridingFrog( )
 
 	if frog.alive and col.collisionRow( frog, game ):
 		if frog.currentRow < 6 or frog.currentRow >= 12:
@@ -219,6 +219,12 @@ def drawGameScreen( ):
 	for n in range(Global.Max_logs)    : game.log[n].draw( screen, gfx )
 	for n in range(Global.Max_turtles) : game.turtle[n].draw( screen, gfx )
 	frog.draw( screen, gfx )
+
+	## Draw our black side borders
+	pygame.draw.rect( screen, 0, ( 0, 0, Global.Left_side, Global.Screen_height ) )
+	pygame.draw.rect( screen, 0, ( Global.Right_side, 0, \
+					   Global.Screen_width - Global.Right_side, \
+				  	   Global.Screen_height ) )
 
 	pygame.display.flip( )
 
@@ -253,10 +259,25 @@ def moveFrog( ):
 	frog.hopCount += 1
 
 	if frog.hopCount >= Global.Hop_speed:
-		frog.hopCount  = 1
+		frog.hopCount  = 0
 		frog.direction = False
 		game.score     += Global.Score_hop
-#		frog.src       -= ( FRAME )
+
+	col.checkFrogBorder( frog )
+
+def ridingFrog( ):
+	if frog.hopCount > 0: return
+
+	if frog.ridingType == Global.Log:
+		speed = game.log[frog.ridingIdx].speed 
+	elif frog.ridingType == Global.Turtle:
+		speed = game.turtle[frog.ridingIdx].speed
+		
+	( X, Y )        = frog.pos
+	frog.oldPos     = ( X, Y )
+
+	if frog.riding == Global.Left    : frog.pos = ( X - speed, Y )
+	elif frog.riding == Global.Right : frog.pos = ( X + speed, Y )
 
 	col.checkFrogBorder( frog )
 
