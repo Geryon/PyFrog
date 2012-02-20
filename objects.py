@@ -208,3 +208,22 @@ class pyFrog( ):
 		self.src	= [ 0, 0, self.config.Frame, self.config.Frame ]
 		self.dst	= self.pos
 
+	def deathSeq( self, screen, gfx ):
+		dFrame	   = 0
+		animDelay  = 55
+		animOffset = 11
+		if self.deathType == self.config.Splat: animOffset = 8
+		if self.deathType == False: return
+
+		if self.deathCount < 7  : dFrame = 0
+		if self.deathCount >= 7 : dFrame = 1
+		if self.deathCount >= 14: dFrame = 2
+		if self.deathCount > 20 : animOffset = 12
+
+		self.deathCount += 1
+		if self.deathCount >= animDelay:
+			self.deathType = False
+			return 0
+
+		screen.blit( gfx.frogger_image, self.pos, [ self.config.Frame * ( animOffset + dFrame ), 0, \
+			     self.config.Frame, self.config.Frame ] )

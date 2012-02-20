@@ -9,7 +9,7 @@ import config, objects, media, collision
 global screen
 
 def main( ):
-	pygame.mixer.init( )
+#	pygame.mixer.init( )
 	pygame.mixer.pre_init( 44100, -16, 2, 2048 )
 
 	pygame.init( )
@@ -131,11 +131,6 @@ def updateGameState( ):
 		game.drawBG = False
 		configGameScreen( )
 
-	if frog.alive == False:
-		print "D: Frog died"
-		game.lives -= 1
-		frog.reset( Global )
-
 	if game.lives <= 0:
 		print "GAME OVER"
 		game.goDelay += 1
@@ -180,6 +175,7 @@ def configGameScreen( ):
 	##
 
 	## Configure goals
+	for n in range(Global.Max_goals): pass
 
 	## Configure logs
 	for n in range(Global.Max_logs): game.log.append( objects.Logs( n ) )
@@ -204,21 +200,28 @@ def drawGameScreen( ):
 
 	if frog.alive and col.collisionRow( frog, game ):
 		if frog.currentRow < 6 or frog.currentRow >= 12:
-			# playsound( frog.s_squash
+			snd.splat.play()
 			frog.deathType = Global.Splat
 			frog.alive     = False
-			print( "D: Frog is splat or in thorn bushes!!" )
 		else:
-			# playSound( frog.s_splash)
+			snd.splash.play()
 			frog.deathType = Global.Splash
 			frog.alive     = False
-			print( "D: Frog in water!!" )
 
 	screen.blit( gfx.background_image, ( 0, 0 ) )
 	for n in range(Global.Max_vehicles): game.vehicle[n].draw( screen, gfx, game )
 	for n in range(Global.Max_logs)    : game.log[n].draw( screen, gfx )
 	for n in range(Global.Max_turtles) : game.turtle[n].draw( screen, gfx )
-	frog.draw( screen, gfx )
+
+	if frog.alive == False:
+		if frog.deathType == False:
+			print "D: Frog died"
+			game.lives -= 1
+			frog.reset( Global )
+		else:
+			frog.deathSeq( screen, gfx )
+	else:
+		frog.draw( screen, gfx )
 
 	## Draw our black side borders
 	pygame.draw.rect( screen, 0, ( 0, 0, Global.Left_side, Global.Screen_height ) )
@@ -312,7 +315,9 @@ def loadMedia( ):
 	gfx.frogger_image, gfx.frogger_rect = loadImage( 'frogger.png', -1 )
 	gfx.title_image, gfx.title_rect = loadImage( 'pyfrog-title.png', -1 )
 	
-	snd.hop = loadSound( 'dp_frogger_hop.ogg' )
+	snd.hop    = loadSound( 'dp_frogger_hop.ogg' )
+	snd.splash = loadSound( 'dp_frogger_plunk.ogg' )
+	snd.splat  = loadSound( 'dp_frogger_squash.ogg' )
 	
 	return 1
 
