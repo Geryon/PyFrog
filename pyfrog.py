@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -46,11 +46,11 @@ def beginGame():
     done = False
 
     if loadMedia() <= 0:
-        print "Error: Failed to load graphics and audio!\n"
+        print("Error: Failed to load graphics and audio!\n")
         return
 
     if Global.Debug:
-        print "D: Starting main game loop"
+        print("D: Starting main game loop")
 
     clock = pygame.time.Clock()
 
@@ -70,7 +70,7 @@ def keyEvents(event):
         return 1
     elif event.type == KEYDOWN:
         if event.key == K_ESCAPE or event.key == K_q:
-            print "D: Exiting game"
+            print("D: Exiting game")
             return 1
 
         ##
@@ -78,14 +78,14 @@ def keyEvents(event):
         ##
         elif event.key == K_l:
             game.level += 1
-            print "D: Increasing level to ", game.level
+            print("D: Increasing level to ", game.level)
 
         ##
         ## kill the frog
         ##
         elif event.key == K_k:
             frog.alive = False
-            print "D: Killed the frog."
+            print("D: Killed the frog.")
 
         ##
         ## Key actions if paused
@@ -96,7 +96,7 @@ def keyEvents(event):
                     game.playing = False
                 else:
                     game.playing = True
-                print "D: Pausing Game"
+                print("D: Pausing Game")
 
         ##
         ## Key actions at the main menu
@@ -107,7 +107,7 @@ def keyEvents(event):
                 game.playing = True
                 game.lives = Global.Lives
                 game.drawBG = True
-                print "D: Starting Game"
+                print("D: Starting Game")
 
         ##
         ## Key actions while playing a game
@@ -143,7 +143,7 @@ def updateGameState():
         configGameScreen()
 
     if game.lives <= 0:
-        print "GAME OVER"
+        print("GAME OVER")
         game.goDelay += 1
         drawGameOver()
         if game.goDelay > 7:
@@ -176,7 +176,7 @@ def updateGameState():
 def configGameScreen():
     game.drawBG = False
 
-    print "Configing game screen"
+    print("Configing game screen")
 
     screen.blit(gfx.background_image, (0, 0))
 
@@ -241,7 +241,7 @@ def drawGameScreen():
 
     if frog.alive == False:
         if frog.deathType == False:
-            print "D: Frog died"
+            print("D: Frog died")
             game.lives -= 1
             frog.reset(Global)
         else:
@@ -333,11 +333,11 @@ def heartbeat():
 
 
 def drawGameOver():
-    print "D: Game Over man!  Game Over!"
+    print("D: Game Over man!  Game Over!")
 
 
 def drawPauseScreen():
-    print "D: Game Paused"
+    print("D: Game Paused")
 
 
 def drawTitleScreen():
@@ -347,7 +347,7 @@ def drawTitleScreen():
 
 
 def loadMedia():
-    print "D: Loading media"
+    print("D: Loading media")
     gfx.background_image, gfx.background_rect = loadImage('gameboard.png')
     gfx.frogger_image, gfx.frogger_rect = loadImage('frogger.png', -1)
     gfx.title_image, gfx.title_rect = loadImage('pyfrog-title.png', -1)
@@ -364,12 +364,12 @@ def loadImage(filename, colorKey=None):
 
     try:
         image = pygame.image.load(fullname).convert()
-    except pygame.error, message:
-        print "ERROR: Failed to load image: " + fullname
+    except(pygame.error, message):
+        print("ERROR: Failed to load image: " + fullname)
         raise Exception(message)
 
     if colorKey is not None:
-        if colorKey is -1:
+        if colorKey == -1:
             colorKey = image.get_at((0, 0))
         image.set_colorkey(colorKey, RLEACCEL)
 
@@ -387,8 +387,8 @@ def loadSound(name):
     fullname = os.path.join('sounds', name)
     try:
         sound = pygame.mixer.Sound(fullname)
-    except pygame.error, message:
-        print "ERROR: Audio file missing: " + fullname
+    except(pygame.error, message):
+        print("ERROR: Audio file missing: " + fullname)
         return noSound
 
     return sound
